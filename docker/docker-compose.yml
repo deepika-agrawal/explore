@@ -1,0 +1,39 @@
+
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:17 
+    container_name: postgres_container
+    restart: always
+    env_file:
+      - ../src/.env
+    ports:
+      - "5432:5432" # Maps the container's port to the host
+    volumes:
+      - postgres_data:/var/lib/postgresql/data # Persistent storage
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql # Initialise database
+  pgadmin:
+    image: dpage/pgadmin4:latest 
+    container_name: pgadmin_container
+    restart: always
+    env_file:
+      - ../src/.env
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres # Ensures pgAdmin starts after the PostgreSQL service
+  app:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: explore_service_container
+    env_file:
+      - ../src/.env
+    ports:
+      - "50051:50051"
+    depends_on:
+      - postgres # Ensures explore service starts after the PostgreSQL service
+
+volumes:
+  postgres_data:
